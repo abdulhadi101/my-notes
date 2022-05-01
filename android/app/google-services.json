@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "715302823125",
+    "project_id": "asuku-notes",
+    "storage_bucket": "asuku-notes.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:715302823125:android:c5a7874ad783db84786e5c",
+        "android_client_info": {
+          "package_name": "me.asuku.mynotes"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "715302823125-ucn3d6fbdia474e1c90233k6ougi78kp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCCB8hK9R36pabKtHyD-HoWGKw0Q58kuB4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "715302823125-ucn3d6fbdia474e1c90233k6ougi78kp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
