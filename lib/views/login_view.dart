@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:mynotes/constants/routes.dart';
-import 'dart:developer' as devtools show log;
-
-import 'package:mynotes/main.dart';
 import 'package:mynotes/utility/show_error_dialog.dart';
 
 class LoginView extends StatefulWidget {
@@ -60,34 +57,49 @@ class _LoginViewState extends State<LoginView> {
               final email = _email.text;
               final password = _password.text;
               try {
-                final userCredential =
-                    await FirebaseAuth.instance.signInWithEmailAndPassword(
+                await FirebaseAuth.instance.signInWithEmailAndPassword(
                   email: email,
                   password: password,
                 );
 
-                Navigator.of(context).pushNamedAndRemoveUntil(
-                  noteRoutes,
-                  (route) => false,
-                );
+                final user = FirebaseAuth.instance.currentUser;
 
-                devtools.log(userCredential.toString());
+                if (user != null) {
+                  if (user.emailVerified) {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      noteRoutes,
+                      (route) => false,
+                    );
+                  } else {
+                    Navigator.of(context).pushNamedAndRemoveUntil(
+                      verifyEmailRoute,
+                      (route) => false,
+                    );
+                  }
+                }
               } on FirebaseAuthException catch (e) {
                 if (e.code == 'user-not-found') {
-                  await showErrorDialog(context, "User not Found");
+                  await showErrorDialog(
+                    context,
+                    "User not Found",
+                  );
                 } else if (e.code == 'wrong-password') {
-                    await showErrorDialog(context, "Wrong Credentials");
+                  await showErrorDialog(
+                    context,
+                    "Wrong Credentials",
+                  );
+                } else {
+                  await showErrorDialog(
+                    context,
+                    "Error: ${e.code}",
+                  );
                 }
-
-                else {
-                  await showErrorDialog(context, "Error: ${e.code}");
-                }
-              } 
-
-              catch (e){
-                await showErrorDialog(context, e.toString());
+              } catch (e) {
+                await showErrorDialog(
+                  context,
+                  e.toString(),
+                );
               }
-
             },
             child: const Text("Login"),
           ),
@@ -103,4 +115,3 @@ class _LoginViewState extends State<LoginView> {
     );
   }
 }
-
