@@ -236,7 +236,7 @@ class NoteService {
       await cacheNotes();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectory();
-    } catch (e) {}
+    }
   }
 }
 
@@ -311,7 +311,7 @@ const createUserTable = '''CREATE TABLE IF NOT EXISTS "user" (
                                     PRIMARY KEY("id" AUTOINCREMENT)
                                   );
             ''';
-const createNoteTable = '''  CREATE TABLE IF NOT EXISITS "note" (
+const createNoteTable = '''  CREATE TABLE IF NOT EXISTS "note" (
                     "id"	INTEGER NOT NULL,
                     "user_id"	INTEGER NOT NULL,
                     "text"	TEXT,
