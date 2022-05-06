@@ -14,12 +14,12 @@ class NoteView extends StatefulWidget {
 }
 
 class _NoteViewState extends State<NoteView> {
-  late final NoteService _noteService;
+  late final NotesService _noteService;
 
   String get userEmail => AuthService.firebase().currentUser!.email!;
   @override
   void initState() {
-    _noteService = NoteService();
+    _noteService = NotesService();
     super.initState();
   }
 
@@ -31,7 +31,7 @@ class _NoteViewState extends State<NoteView> {
         actions: [
           IconButton(
             onPressed: () {
-              Navigator.of(context).pushNamed(newNoteRoutes);
+              Navigator.of(context).pushNamed(createOrUpdateNoteRoute);
             },
             icon: const Icon(Icons.add),
           ),
@@ -59,24 +59,30 @@ class _NoteViewState extends State<NoteView> {
         ],
       ),
       body: FutureBuilder(
-          future: _noteService.getOrCreate(email: userEmail),
+          future: _noteService.getOrCreateUser(email: userEmail),
           builder: (context, snapshot) {
             switch (snapshot.connectionState) {
               case ConnectionState.done:
                 return StreamBuilder(
                   stream: _noteService.allNotes,
-                  builder: (BuildContext context, AsyncSnapshot snapshot) {
+                  builder: (context, snapshot) {
                     switch (snapshot.connectionState) {
                       case ConnectionState.waiting:
                       case ConnectionState.active:
                         if (snapshot.hasData) {
                           final allNotes = snapshot.data as List<DatabaseNote>;
-                          print(allNotes.toList.toString);
+
                           return NoteListView(
-                              notes: allNotes,
-                              onDeleteNote: (note) async {
-                                await _noteService.deleteNote(id: note.id);
-                              });
+                            notes: allNotes,
+                            onDeleteNote: (note) async {
+                              _noteService.deleteNote(id: note.id);
+                            },
+                            onTap: (note) {
+                              Navigator.of(context).pushNamed(
+                                  createOrUpdateNoteRoute,
+                                  arguments: note);
+                            },
+                          );
                         } else {
                           return const CircularProgressIndicator();
                         }
