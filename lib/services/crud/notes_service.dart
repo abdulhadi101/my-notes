@@ -12,11 +12,16 @@ class NoteService {
 
   static final NoteService _shared = NoteService._sharedInstance();
 
-  NoteService._sharedInstance();
+  NoteService._sharedInstance() {
+    _noteStreamController = StreamController<List<DatabaseNote>>.broadcast(
+      onListen: () {
+        _noteStreamController.sink.add(_notes);
+      },
+    );
+  }
   factory NoteService() => _shared;
 
-  final _noteStreamController =
-      StreamController<List<DatabaseNote>>.broadcast();
+  late final StreamController<List<DatabaseNote>> _noteStreamController;
 
   Stream<List<DatabaseNote>> get allNotes => _noteStreamController.stream;
 
@@ -32,7 +37,7 @@ class NoteService {
     }
   }
 
-  Future<void> cacheNotes() async {
+  Future<void> _cacheNotes() async {
     final allNotes = await getAllNotes();
     _notes = allNotes.toList();
     _noteStreamController.add(_notes);
@@ -62,6 +67,7 @@ class NoteService {
   }
 
   Future<Iterable<DatabaseNote>> getAllNotes() async {
+    await _ensureDBIsOpen();
     final db = _getDatabaseorThrow();
 
     final notes = await db.query(
@@ -129,11 +135,18 @@ class NoteService {
     }
     // create the note
 
-    final noteId = await db.insert(noteTable,
-        {userIdColumn: owner.id, textColumn: text, isSyncedColumn: 1});
+    final noteId = await db.insert(noteTable, {
+      userIdColumn: owner.id,
+      textColumn: text,
+      isSyncedColumn: 1,
+    });
 
     final note = DatabaseNote(
-        id: noteId, userId: owner.id, text: text, isSyncedWithCloud: true);
+      id: noteId,
+      userId: owner.id,
+      text: text,
+      isSyncedWithCloud: true,
+    );
 
     _notes.add(note);
     _noteStreamController.add(_notes);
@@ -216,8 +229,10 @@ class NoteService {
 
   Future<void> _ensureDBIsOpen() async {
     try {
-      open();
-    } on DatabaseAlreadyOpenException {}
+      await open();
+    } on DatabaseAlreadyOpenException {
+      throw DatabaseAlreadyOpenException();
+    }
   }
 
   Future<void> open() async {
@@ -233,7 +248,7 @@ class NoteService {
       await db.execute(createUserTable);
 
       await db.execute(createNoteTable);
-      await cacheNotes();
+      await _cacheNotes();
     } on MissingPlatformDirectoryException {
       throw UnableToGetDocumentsDirectory();
     }
@@ -315,9 +330,9 @@ const createNoteTable = '''  CREATE TABLE IF NOT EXISTS "note" (
                     "id"	INTEGER NOT NULL,
                     "user_id"	INTEGER NOT NULL,
                     "text"	TEXT,
-                    "is_synced_with_cloud"	INTEGER DEFAULT 0,
-                    PRIMARY KEY("id" AUTOINCREMENT),
-                    FOREIGN KEY("user_id") REFERENCES "user"("id")
+                    "is_synced_with_cloud"	INTEGER NOT NULL DEFAULT 0,
+                    FOREIGN KEY("user_id") REFERENCES "user"("id"),
+                    PRIMARY KEY("id" AUTOINCREMENT)
                   );
                        
             ''';
